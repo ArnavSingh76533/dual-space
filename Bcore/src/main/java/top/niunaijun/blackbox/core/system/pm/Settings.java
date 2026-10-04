@@ -22,7 +22,7 @@ import top.niunaijun.blackbox.core.system.user.BUserHandle;
 import top.niunaijun.blackbox.entity.pm.InstallOption;
 import top.niunaijun.blackbox.utils.BzFileUtils;
 import top.niunaijun.blackbox.utils.Slog;
-import top.niunaijun.blackbox.utils.compat.PackageParserCompat;
+import top.niunaijun.blackbox.utils.compat.InstalledPackageParser;
 
 
  class Settings {
@@ -233,13 +233,13 @@ import top.niunaijun.blackbox.utils.compat.PackageParserCompat;
         }
     }
 
-    private BPackageSettings reInstallBySystem(PackageInfo systemPackageInfo, InstallOption option) throws Exception {
+    private BPackageSettings reInstallBySystem(PackageInfo systemPackageInfo, InstallOption option) throws Throwable {
         Slog.d(TAG, "reInstallBySystem: " + systemPackageInfo.packageName);
-        PackageParser.Package aPackage = parserApk(systemPackageInfo.applicationInfo.sourceDir);
+        PackageParser.Package aPackage = InstalledPackageParser.parse(systemPackageInfo);
         if (aPackage == null) {
             throw new RuntimeException("parser apk error.");
         }
-        aPackage.applicationInfo = BlackBoxCore.getPackageManager().getPackageInfo(aPackage.packageName, 0).applicationInfo;
+        aPackage.applicationInfo = new android.content.pm.ApplicationInfo(systemPackageInfo.applicationInfo);
         return getPackageLPw(aPackage.packageName, aPackage, option);
     }
 
@@ -247,15 +247,4 @@ import top.niunaijun.blackbox.utils.compat.PackageParserCompat;
         mPackages.remove(packageName);
     }
 
-    private PackageParser.Package parserApk(String file) {
-        try {
-            PackageParser parser = PackageParserCompat.createParser(new File(file));
-            PackageParser.Package aPackage = PackageParserCompat.parsePackage(parser, new File(file), 0);
-            PackageParserCompat.collectCertificates(parser, aPackage, 0);
-            return aPackage;
-        } catch (Throwable t) {
-            t.printStackTrace();
-        }
-        return null;
-    }
 }

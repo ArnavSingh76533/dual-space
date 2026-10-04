@@ -507,6 +507,20 @@ public class BPackageManager extends BlackManager<IBPackageManagerService> {
         return Collections.emptyList();
     }
 
+    public InstallResult installInstalledPackageAsUser(String packageName, int userId) {
+        try {
+            IBPackageManagerService service = getServiceWithFallback();
+            if (service == null) return new InstallResult().installError(packageName, "Virtual PackageManager is unavailable. Restart the engine and retry.");
+            InstallResult result = service.installInstalledPackageAsUser(packageName, userId);
+            return result == null ? new InstallResult().installError(packageName, "PackageManager returned no installation result") : result;
+        } catch (RemoteException failure) {
+            clearServiceCache();
+            return new InstallResult().installError(packageName, "PackageManager connection failed: " + FailureMessage.describe(failure));
+        } catch (RuntimeException failure) {
+            return new InstallResult().installError(packageName, FailureMessage.describe(failure));
+        }
+    }
+
     public InstallResult installPackageAsUser(String file, InstallOption option, int userId) {
         try {
             

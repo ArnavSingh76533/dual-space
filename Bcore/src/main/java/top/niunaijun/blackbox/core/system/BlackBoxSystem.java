@@ -72,7 +72,7 @@ public class BlackBoxSystem {
             try {
                 if (!BPackageManagerService.get().isInstalled(preInstallPackage, BUserHandle.USER_ALL)) {
                     PackageInfo packageInfo = BlackBoxCore.getPackageManager().getPackageInfo(preInstallPackage, 0);
-                    BPackageManagerService.get().installPackageAsUser(packageInfo.applicationInfo.sourceDir, InstallOption.installBySystem(), BUserHandle.USER_ALL);
+                    BPackageManagerService.get().installInstalledPackageAsUser(preInstallPackage, BUserHandle.USER_ALL);
                 }
             } catch (PackageManager.NameNotFoundException ignored) {
             }

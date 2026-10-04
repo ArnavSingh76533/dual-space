@@ -47,6 +47,8 @@ final class GoogleDiagnostics {
                 if (app != null) {
                     report.append("Phone enabled: ").append(app.enabled).append("\nBase APK readable: ")
                             .append(app.sourceDir != null && new File(app.sourceDir).canRead()).append("\n");
+                    PackageInfo archive = app.sourceDir == null ? null : pm.getPackageArchiveInfo(app.sourceDir, 0);
+                    report.append("Base archive package: ").append(archive == null ? "Unavailable" : archive.packageName).append("\n");
                     int splits = app.splitSourceDirs == null ? 0 : app.splitSourceDirs.length;
                     int readable = 0;
                     if (app.splitSourceDirs != null) for (String path : app.splitSourceDirs) {

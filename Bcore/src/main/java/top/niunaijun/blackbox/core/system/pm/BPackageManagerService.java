@@ -50,6 +50,7 @@ import top.niunaijun.blackbox.utils.BzFileUtils;
 import top.niunaijun.blackbox.utils.Slog;
 import top.niunaijun.blackbox.utils.FailureMessage;
 import top.niunaijun.blackbox.utils.compat.PackageParserCompat;
+import top.niunaijun.blackbox.utils.compat.InstalledPackageParser;
 
 
 import static android.content.pm.PackageManager.MATCH_DIRECT_BOOT_UNAWARE;
@@ -556,6 +557,21 @@ public class BPackageManagerService extends IBPackageManagerService.Stub impleme
     }
 
     @Override
+    public InstallResult installInstalledPackageAsUser(String packageName, int userId) {
+        synchronized (mInstallLock) {
+            try {
+                PackageInfo installed = BlackBoxCore.getPackageManager().getPackageInfo(packageName, 0);
+                if (installed.applicationInfo == null || installed.applicationInfo.sourceDir == null) {
+                    return new InstallResult().installError(packageName, "The phone's installed package has no base APK: " + packageName);
+                }
+                return installPackageAsUserLocked(installed.applicationInfo.sourceDir, InstallOption.installBySystem(), userId, installed);
+            } catch (Throwable failure) {
+                return new InstallResult().installError(packageName, "Could not read installed package " + packageName + ": " + FailureMessage.describe(failure));
+            }
+        }
+    }
+
+    @Override
     public void uninstallPackageAsUser(String packageName, int userId) throws RemoteException {
         synchronized (mInstallLock) {
             synchronized (mPackages) {
@@ -682,6 +698,10 @@ public class BPackageManagerService extends IBPackageManagerService.Stub impleme
     }
 
     private InstallResult installPackageAsUserLocked(String file, InstallOption option, int userId) {
+        return installPackageAsUserLocked(file, option, userId, null);
+    }
+
+    private InstallResult installPackageAsUserLocked(String file, InstallOption option, int userId, PackageInfo installed) {
         long l = System.currentTimeMillis();
         InstallResult result = new InstallResult();
         File apkFile = null;
@@ -747,7 +767,7 @@ public class BPackageManagerService extends IBPackageManagerService.Stub impleme
 
 
             phase = "reading APK metadata";
-            PackageInfo packageArchiveInfo = BlackBoxCore.getPackageManager().getPackageArchiveInfo(apkFile.getAbsolutePath(), 0);
+            PackageInfo packageArchiveInfo = installed != null ? installed : BlackBoxCore.getPackageManager().getPackageArchiveInfo(apkFile.getAbsolutePath(), 0);
             if (packageArchiveInfo == null) {
                 return result.installError("getPackageArchiveInfo error.Please check whether APK is normal.");
             }
@@ -775,7 +795,7 @@ public class BPackageManagerService extends IBPackageManagerService.Stub impleme
                         msg + "\n" + (BlackBoxCore.is64Bit() ? "The box does not support 32-bit Application" : "The box does not support 64-bit Application"));
             }
             phase = "parsing the manifest and signatures";
-            PackageParser.Package aPackage = parserApk(apkFile.getAbsolutePath());
+            PackageParser.Package aPackage = installed != null ? InstalledPackageParser.parse(installed) : parserApk(apkFile.getAbsolutePath());
             if (aPackage == null) {
                 return result.installError("parser apk error.");
             }
@@ -800,7 +820,8 @@ public class BPackageManagerService extends IBPackageManagerService.Stub impleme
 
             if (option.isFlag(InstallOption.FLAG_SYSTEM)) {
                 phase = "reading the phone's installed package";
-                aPackage.applicationInfo = BlackBoxCore.getPackageManager().getPackageInfo(aPackage.packageName, 0).applicationInfo;
+                aPackage.applicationInfo = new ApplicationInfo(installed != null ? installed.applicationInfo
+                        : BlackBoxCore.getPackageManager().getPackageInfo(aPackage.packageName, 0).applicationInfo);
             }
             phase = "creating virtual package metadata";
             BPackageSettings bPackageSettings = mSettings.getPackageLPw(aPackage.packageName, aPackage, option);

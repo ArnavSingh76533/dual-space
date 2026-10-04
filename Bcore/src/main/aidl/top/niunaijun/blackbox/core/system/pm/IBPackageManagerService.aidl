@@ -37,6 +37,7 @@ interface IBPackageManagerService {
     List<ProviderInfo> queryContentProviders(String processName, int uid, int flags, int userId);
 
     InstallResult installPackageAsUser(String file, in InstallOption option, int userId);
+    InstallResult installInstalledPackageAsUser(String packageName, int userId);
     void uninstallPackageAsUser(String packageName, int userId);
     void uninstallPackage(String packageName);
     void clearPackage(String packageName, int userId);

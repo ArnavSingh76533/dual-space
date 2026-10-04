@@ -16,6 +16,10 @@ versions. Test first with a nonessential account.
    If setup fails, copy the report from its error dialog. Restart Engine and
    retry; verify completed components stay installed and setup resumes. Check
    both spaces: installation on the phone alone must not mark either complete.
+   On Android 16 / Play services 26.34.36, retry the reported Cronet Dynamite
+   manifest mismatch with 1.0.2. Verify the installed virtual package is
+   `com.google.android.gms`, not `com.google.android.gms.dynamite_cronetdynamite`.
+   Copy a new report if the explicit base-manifest fallback fails.
 5. Use an identifier test app in both spaces. Record Android ID, telephony
    device ID, Build serial, Bluetooth address and Wi-Fi address. Randomize
    Space 1; verify its apps stop and see new values after relaunch. Verify

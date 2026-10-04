@@ -69,6 +69,14 @@ It does not include account credentials, tokens or device identifiers and is
 only copied locally. An installed status does not verify Google login or API
 behavior; those still need testing on the phone.
 
+Version **1.0.2** addresses the reported Android 16 parse mismatch where Play
+services was parsed as `com.google.android.gms.dynamite_cronetdynamite`.
+Installed-app requests now pass the requested package name to the server;
+parsing validates it and retries the explicitly selected base manifest on a
+mismatch. The same parser is used when the phone's app is updated. Package
+names and signatures of Google APKs are not altered. The actual Android 16
+resource parsing fallback and Google login still require a phone retry.
+
 ## Build locally
 
 JDK 21, Android SDK 35 / build-tools 35.0.0, and NDK 29.0.13846066:
