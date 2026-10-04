@@ -1,10 +1,10 @@
 plugins { id 'com.android.application' }
 android {
-    namespace 'com.arnav.dualspace'
+    namespace 'com.arnav.nimbus'
     compileSdk 35
     ndkVersion '29.0.13846066'
     defaultConfig {
-        applicationId 'com.arnav.dualspace'
+        applicationId 'com.arnav.nimbus'
         minSdk 24
         // The virtualization engine relies on legacy APIs. See docs/COMPATIBILITY.md.
         targetSdk 28

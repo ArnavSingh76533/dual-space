@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
-    <application android:name=".DualSpaceApplication" android:label="Dual Space"
+    <application android:name=".NimbusApplication" android:label="Nimbus"
         android:icon="@drawable/ic_launcher" android:allowBackup="false"
         android:theme="@style/AppTheme" android:extractNativeLibs="true"
         tools:replace="android:allowBackup">

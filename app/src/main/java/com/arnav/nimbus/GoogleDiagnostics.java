@@ -1,4 +1,4 @@
-package com.arnav.dualspace;
+package com.arnav.nimbus;
 
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
@@ -30,7 +30,7 @@ final class GoogleDiagnostics {
     }
 
     static String report(Context context, int space) {
-        StringBuilder report = new StringBuilder("Dual Space Google setup report\n");
+        StringBuilder report = new StringBuilder("Nimbus Google setup report\n");
         report.append("App: ").append(BuildConfig.VERSION_NAME).append(" (code ").append(BuildConfig.VERSION_CODE).append(")\n");
         report.append("Android: ").append(Build.VERSION.RELEASE).append(" / API ").append(Build.VERSION.SDK_INT).append("\n");
         report.append("Device ABIs: ").append(String.join(", ", Build.SUPPORTED_ABIS)).append("\n");

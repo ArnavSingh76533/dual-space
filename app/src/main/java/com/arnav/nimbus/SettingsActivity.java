@@ -1,4 +1,4 @@
-package com.arnav.dualspace;
+package com.arnav.nimbus;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -21,7 +21,7 @@ public final class SettingsActivity extends BaseActivity {
         permissions.addView(Ui.button(this, "Battery settings", () -> open(new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))));
         permissions.addView(Ui.button(this, "Android app settings", () -> open(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:" + getPackageName())))));
         LinearLayout about = Ui.card(this); list.addView(about);
-        TextView version = Ui.text(this, "Dual Space 1.0.0", 19, Ui.TEXT); Ui.bold(version); about.addView(version);
+        TextView version = Ui.text(this, "Nimbus " + BuildConfig.VERSION_NAME, 19, Ui.TEXT); Ui.bold(version); about.addView(version);
         TextView detail = Ui.text(this, "Multiple spaces • Separate app data • No subscription\n\nBased on the Apache-licensed BlackBox engine and Black00Z's modern Android fork. Google APKs are imported from your phone.\n\nThe engine uses legacy Android APIs. Android 14–16 and individual apps need device testing. Google login, notifications and Play Integrity-dependent apps may not work in a virtual space.", 14, Ui.MUTED);
         Ui.margin(detail, 12, this); about.addView(detail);
         about.addView(Ui.button(this, "Source code & build downloads", () -> open(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(MainActivity.REPO)))));

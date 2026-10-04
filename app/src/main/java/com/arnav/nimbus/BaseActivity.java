@@ -1,4 +1,4 @@
-package com.arnav.dualspace;
+package com.arnav.nimbus;
 
 import android.os.Bundle;
 import android.view.Gravity;
@@ -43,7 +43,7 @@ public abstract class BaseActivity extends AppCompatActivity {
                 T value = work.call();
                 runOnUiThread(() -> { if (!isFinishing() && !isDestroyed()) done.accept(value); });
             } catch (Throwable e) {
-                android.util.Log.e("DualSpace", "Operation failed", e);
+                android.util.Log.e("Nimbus", "Operation failed", e);
                 runOnUiThread(() -> { if (!isFinishing() && !isDestroyed()) alert("Could not complete", e.getMessage() == null ? e.toString() : e.getMessage()); });
             }
         });
@@ -55,7 +55,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         AlertDialog dialog = new AlertDialog.Builder(this).setView(body).setCancelable(false).create(); dialog.show();
         IO.execute(() -> {
             T result = null; Throwable error = null;
-            try { result = work.call(); } catch (Throwable e) { error = e; android.util.Log.e("DualSpace", "Operation failed", e); }
+            try { result = work.call(); } catch (Throwable e) { error = e; android.util.Log.e("Nimbus", "Operation failed", e); }
             T value = result; Throwable failure = error;
             runOnUiThread(() -> {
                 if (!isDestroyed()) dialog.dismiss();

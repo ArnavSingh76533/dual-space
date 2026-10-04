@@ -1,4 +1,4 @@
-package com.arnav.dualspace;
+package com.arnav.nimbus;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -13,14 +13,14 @@ import top.niunaijun.blackbox.utils.FailureMessage;
 
 final class SpaceRepository {
     static final BlackBoxCore CORE = BlackBoxCore.get();
-    static SharedPreferences prefs(Context c) { return c.getSharedPreferences("DualSpace", 0); }
+    static SharedPreferences prefs(Context c) { return c.getSharedPreferences("Nimbus", 0); }
     static String name(Context c, int id) { return prefs(c).getString("name." + id, "Space " + (id + 1)); }
     static String label(Context c, int id, ApplicationInfo a) {
         return prefs(c).getString("label." + id + "." + a.packageName, a.loadLabel(c.getPackageManager()).toString());
     }
     static boolean hidden(Context c, int id, String pkg) { return prefs(c).getBoolean("hidden." + id + "." + pkg, false); }
     static void checkEngine() {
-        if (DualSpaceApplication.engineError != null) throw new IllegalStateException("Virtual engine could not start: " + DualSpaceApplication.engineError);
+        if (NimbusApplication.engineError != null) throw new IllegalStateException("Virtual engine could not start: " + NimbusApplication.engineError);
     }
     static int create(Context c) {
         checkEngine();

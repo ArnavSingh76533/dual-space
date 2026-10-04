@@ -1,4 +1,4 @@
-package com.arnav.dualspace;
+package com.arnav.nimbus;
 
 import android.app.PendingIntent;
 import android.content.Intent;
@@ -31,7 +31,7 @@ public final class MainActivity extends BaseActivity {
     private boolean showHidden;
     private final Runnable ready = () -> runOnUiThread(() -> { if (!isDestroyed() && !isFinishing()) refresh(); });
     @Override protected void onCreate(Bundle state) {
-        super.onCreate(state); title("Dual Space", false);
+        super.onCreate(state); title("Nimbus", false);
         icon("⌕", "Search apps", () -> { search.setVisibility(search.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE); search.requestFocus(); });
         icon("⊘", "Ad-free membership", this::membership);
         icon("▦", "QR tools", this::qrTools);
@@ -54,7 +54,7 @@ public final class MainActivity extends BaseActivity {
         fab.setMargins(0, 0, Ui.dp(this, 20), Ui.dp(this, 20)); content.addView(add, fab);
         showHidden = SpaceRepository.prefs(this).getBoolean("showHidden", false);
         if (state != null) search.setText(state.getString("search", ""));
-        if (DualSpaceApplication.engineError == null) BlackBoxCore.get().addServiceAvailableCallback(ready);
+        if (NimbusApplication.engineError == null) BlackBoxCore.get().addServiceAvailableCallback(ready);
     }
     @Override protected void onResume() { super.onResume(); refresh(); }
     @Override protected void onSaveInstanceState(Bundle state) { state.putString("search", search.getText().toString()); super.onSaveInstanceState(state); }
@@ -177,7 +177,7 @@ public final class MainActivity extends BaseActivity {
                 case 1: showHidden = !showHidden; SpaceRepository.prefs(this).edit().putBoolean("showHidden", showHidden).apply(); render(); break;
                 case 2: busy("Stopping virtual apps…", () -> { for (SpaceRepository.Space s : SpaceRepository.list(this)) SpaceRepository.stopSpace(s.id); return true; }, ok -> restart()); break;
                 case 3: membership(); break;
-                case 4: startActivity(Intent.createChooser(new Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "Dual Space — separate apps, accounts and spaces.\n" + REPO), "Share Dual Space")); break;
+                case 4: startActivity(Intent.createChooser(new Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "Nimbus — separate apps, accounts and spaces.\n" + REPO), "Share Nimbus")); break;
             } return true;
         }); p.show();
     }
@@ -191,7 +191,7 @@ public final class MainActivity extends BaseActivity {
         }
         finishAffinity(); android.os.Process.killProcess(android.os.Process.myPid());
     }
-    private void membership() { alert("All features included", "Dual Space is free and ad-free. Multiple spaces, device identities and Google service setup are included. There is no subscription."); }
+    private void membership() { alert("All features included", "Nimbus is free and ad-free. Multiple spaces, device identities and Google service setup are included. There is no subscription."); }
     private void google(int id) {
         background(() -> GoogleDiagnostics.status(id), state -> new AlertDialog.Builder(this).setTitle("Google Play services")
                 .setMessage(state + "Setup uses the Google apps already installed on your phone. App compatibility and sign-in vary by device.")
@@ -231,8 +231,8 @@ public final class MainActivity extends BaseActivity {
             else {
                 try {
                     Bitmap qr = new BarcodeEncoder().createBitmap(new MultiFormatWriter().encode(REPO, BarcodeFormat.QR_CODE, 600, 600));
-                    ImageView image = new ImageView(this); image.setImageBitmap(qr); image.setAdjustViewBounds(true); image.setContentDescription("Download Dual Space from GitHub");
-                    new AlertDialog.Builder(this).setTitle("Download Dual Space").setView(image).setPositiveButton("Close", null).show();
+                    ImageView image = new ImageView(this); image.setImageBitmap(qr); image.setAdjustViewBounds(true); image.setContentDescription("Download Nimbus from GitHub");
+                    new AlertDialog.Builder(this).setTitle("Download Nimbus").setView(image).setPositiveButton("Close", null).show();
                 } catch (Exception e) { alert("QR error", e.getMessage()); }
             }
         }).show();

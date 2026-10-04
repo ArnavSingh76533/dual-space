@@ -1,4 +1,4 @@
-# Dual Space
+# Nimbus
 
 Android app container matching the multi-space layout and controls in the
 provided reference video. Built from source with GitHub Actions.
@@ -7,8 +7,8 @@ provided reference video. Built from source with GitHub Actions.
 
 Open [Actions](https://github.com/ArnavSingh76533/dual-space/actions), choose
 the latest successful **Build Android APK** run, and download the
-**DualSpace-APK** artifact. Extract the ZIP and install `DualSpace-arm64.apk`
-on most modern phones. `DualSpace-arm32.apk` is for 32-bit apps on supported
+**Nimbus-APK** artifact. Extract the ZIP and install `Nimbus-arm64.apk`
+on most modern phones. `Nimbus-arm32.apk` is for 32-bit apps on supported
 phones. Both are debug-signed sideload builds, with SHA-256 checksums.
 
 ## Features
@@ -32,9 +32,14 @@ phones. Both are debug-signed sideload builds, with SHA-256 checksums.
 App long-press also provides Rename, Force stop, Clear data, Uninstall and
 Create shortcut. Space menus provide Rename and Delete space.
 
+The Android package is `com.arnav.nimbus`. This is a separate installation
+from the earlier `com.arnav.dualspace` build; its spaces do not migrate
+automatically. Renaming does not conceal virtualization or provide Play
+Integrity certification.
+
 ## Start
 
-1. Install the appropriate APK, open Dual Space and tap +.
+1. Install the appropriate APK, open Nimbus and tap +.
 2. Select apps, then tap Clone. Google setup runs by default when the phone
    has Google Play services; failure details are shown.
 3. Open a space's menu → Google Play services to check/repair its components
