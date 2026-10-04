@@ -9,6 +9,7 @@ import android.content.pm.LauncherApps;
 import android.content.pm.PackageManager;
 import android.os.UserHandle;
 import android.os.UserManager;
+import android.os.Build;
 import top.niunaijun.blackbox.utils.FailureMessage;
 
 /** Android-owned work profile; no virtual package manager, identity hooks or APK rewriting. */
@@ -18,7 +19,10 @@ final class NativeProfileManager {
 
     static boolean isManaged(Context context) {
         UserManager users = context.getSystemService(UserManager.class);
-        return users != null && users.isManagedProfile();
+        if (Build.VERSION.SDK_INT >= 30) return users != null && users.isManagedProfile();
+        // Before API 30, the public owner check identifies profiles provisioned by Nimbus.
+        DevicePolicyManager policies = context.getSystemService(DevicePolicyManager.class);
+        return policies != null && policies.isProfileOwnerApp(context.getPackageName());
     }
 
     static ComponentName admin(Context context) { return new ComponentName(context, NimbusProfileAdminReceiver.class); }
@@ -59,7 +63,9 @@ final class NativeProfileManager {
         LauncherApps launcher = context.getSystemService(LauncherApps.class);
         if (launcher == null) return false;
         UserHandle current = android.os.Process.myUserHandle();
-        for (UserHandle profile : launcher.getProfiles()) {
+        UserManager users = context.getSystemService(UserManager.class);
+        if (users == null) return false;
+        for (UserHandle profile : users.getUserProfiles()) {
             if (current.equals(profile)) continue;
             for (LauncherActivityInfo activity : launcher.getActivityList(context.getPackageName(), profile)) {
                 launcher.startMainActivity(activity.getComponentName(), profile, null, null);
