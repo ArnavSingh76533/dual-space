@@ -1,0 +1,16 @@
+<resources>
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:statusBarColor">#111217</item>
+        <item name="android:navigationBarColor">#111217</item>
+        <item name="colorPrimary">#B2BFFF</item>
+        <item name="colorPrimaryVariant">#345FEF</item>
+        <item name="colorSecondary">#B2BFFF</item>
+        <item name="android:windowBackground">#111217</item>
+    </style>
+    <style name="TransparentTheme" parent="AppTheme">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+</resources>

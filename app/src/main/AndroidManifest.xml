@@ -1,0 +1,18 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    <application android:name=".DualSpaceApplication" android:label="Dual Space"
+        android:icon="@drawable/ic_launcher" android:allowBackup="false"
+        android:theme="@style/AppTheme" android:extractNativeLibs="true"
+        tools:replace="android:allowBackup">
+        <activity android:name=".MainActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".InstallActivity" android:exported="false" />
+        <activity android:name=".IdentityActivity" android:exported="false" />
+        <activity android:name=".SettingsActivity" android:exported="false" />
+        <activity android:name=".ShortcutActivity" android:exported="true" android:theme="@style/TransparentTheme" />
+    </application>
+</manifest>

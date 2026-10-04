@@ -1,0 +1,21 @@
+Dual Space
+Copyright 2026 Dual Space contributors
+
+Includes BlackBox engine source under Apache License 2.0.
+Upstream: https://github.com/Black00Z/Blacks-BlackBox
+Snapshot: 40282a7bf4500948cfd598fc67e6e63114b26dd9
+Original project: BlackBox / top.niunaijun
+Fork contributors: Black00Z, ALEX5402 and upstream contributors.
+
+The Bcore, black-reflection and compiler modules are derived from this
+snapshot. Dual Space modifies Google installation, identity persistence,
+identifier hooks, disables log uploads, and generates the fallback DEX.
+
+Upstream credits: VirtualApp (asLody), VirtualAPK (didi), Dobby (jmpews),
+xDL (hexhacking), BlackReflection (CodingGay), FreeReflection (tiann).
+Native Dobby static archives and xDL source are retained from upstream.
+The full Apache License is provided in LICENSE.
+
+Google Mobile Services and Google Play are owned by Google. Their APKs
+are NOT distributed in this repository. Setup copies installed components
+from the user's device into the chosen virtual user.
