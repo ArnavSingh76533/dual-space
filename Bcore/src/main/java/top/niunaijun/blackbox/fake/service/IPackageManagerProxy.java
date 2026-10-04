@@ -342,19 +342,6 @@ public class IPackageManagerProxy extends BinderInvocationStub {
             }
             
             
-            if ("com.android.vending".equals(packageName)) {
-                PackageInfo fake = createFakeGooglePlayServicesPackageInfo();
-                // Privacy-first (OG): by default keep Play Store fully fake.
-                // If needed for compatibility, allow an explicit opt-in fallback.
-                if (shouldAttachSigningInfo(flags) && isHostSigningFallbackEnabled()) {
-                    PackageInfo real = tryGetRealHostPackageInfo(who, method, args);
-                    if (real != null) {
-                        attachSigningInfo(fake, real);
-                    }
-                }
-                return fake;
-            }
-            
             PackageInfo packageInfo = BlackBoxCore.getBPackageManager().getPackageInfo(packageName, flags, BlackBoxCore.getUserId());
             if (packageInfo != null) {
                 

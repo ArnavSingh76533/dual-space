@@ -10,6 +10,8 @@ Fork contributors: Black00Z, ALEX5402 and upstream contributors.
 The Bcore, black-reflection and compiler modules are derived from this
 snapshot. Dual Space modifies Google installation, identity persistence,
 identifier hooks, disables log uploads, and generates the fallback DEX.
+Unused placeholder authentication/token proxies were removed. Guest binding
+does not fall back to a different virtual user's package data.
 
 Upstream credits: VirtualApp (asLody), VirtualAPK (didi), Dobby (jmpews),
 xDL (hexhacking), BlackReflection (CodingGay), FreeReflection (tiann).

@@ -625,7 +625,7 @@ public class BPackageManagerService extends IBPackageManagerService.Stub impleme
     @Override
     public void deleteUser(int userId) throws RemoteException {
         synchronized (mPackages) {
-            for (BPackageSettings ps : mPackages.values()) {
+            for (BPackageSettings ps : new ArrayList<>(mPackages.values())) {
                 uninstallPackageAsUser(ps.pkg.packageName, userId);
             }
         }

@@ -52,6 +52,12 @@ public class IPhoneSubInfoServiceProxy extends BinderInvocationStub {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        String name = method.getName();
+        if (method.getReturnType() == String.class &&
+                (name.equals("getDeviceId") || name.equals("getDeviceIdForPhone") ||
+                 name.equals("getDeviceIdForSubscriber") || name.equals("getImeiForSubscriber"))) {
+            return top.niunaijun.blackbox.fake.device.DeviceSpoofManager.currentValues().getString("deviceId");
+        }
         try {
             rewriteCallingPackage(args);
             return super.invoke(proxy, method, args);

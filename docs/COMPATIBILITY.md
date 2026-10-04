@@ -23,6 +23,8 @@ Google compatibility hooks. That does **not** guarantee all Google APIs work.
 Hardware-backed Play Integrity, DRM and anti-virtualization checks are not
 emulated. Google sign-in, FCM, Maps, Play Store downloads and individual apps
 require physical-device testing with the installed Google package versions.
+Unused upstream authentication proxies that fabricated accounts/tokens have
+been removed; virtual account management uses the actual account service.
 
 ## Android and architecture
 

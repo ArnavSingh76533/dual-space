@@ -370,26 +370,18 @@ public class BActivityThread extends IBActivityThread.Stub {
                 PackageManager.GET_PROVIDERS,
                 virtualUserId
         );
-        if (packageInfo == null && hostUserId != virtualUserId) {
-            packageInfo = BlackBoxCore.getBPackageManager().getPackageInfo(
-                    packageName,
-                    PackageManager.GET_PROVIDERS,
-                    hostUserId
-            );
-        }
-        if (packageInfo == null && virtualUserId != 0) {
-            packageInfo = BlackBoxCore.getBPackageManager().getPackageInfo(
-                    packageName,
-                    PackageManager.GET_PROVIDERS,
-                    0
-            );
-        }
         if (packageInfo == null || packageInfo.applicationInfo == null) {
             Slog.e(TAG, "handleBindApplication: PackageInfo is null for pkg=" + packageName
                     + ", vUserId=" + virtualUserId + ", hostUserId=" + hostUserId);
             return;
         }
 
+        // Apply this user's identity before loading any guest application code.
+        try {
+            top.niunaijun.blackbox.fake.device.DeviceSpoofManager.applyToCurrentProcess(virtualUserId);
+        } catch (Throwable identityError) {
+            Slog.w(TAG, "Could not apply container Build identity: " + identityError.getMessage());
+        }
         ApplicationInfo applicationInfo = packageInfo.applicationInfo;
 
         ensureApacheLegacyOnSharedLibraryPath(applicationInfo);
