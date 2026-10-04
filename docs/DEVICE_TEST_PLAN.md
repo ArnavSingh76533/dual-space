@@ -13,6 +13,9 @@ versions. Test first with a nonessential account.
    installed; open Play Store and test Google login independently. Exercise
    an app requiring Google APIs, notifications, and an OAuth login flow.
    Record actual errors instead of treating installed packages as success.
+   If setup fails, copy the report from its error dialog. Restart Engine and
+   retry; verify completed components stay installed and setup resumes. Check
+   both spaces: installation on the phone alone must not mark either complete.
 5. Use an identifier test app in both spaces. Record Android ID, telephony
    device ID, Build serial, Bluetooth address and Wi-Fi address. Randomize
    Space 1; verify its apps stop and see new values after relaunch. Verify

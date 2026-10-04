@@ -21,6 +21,7 @@ import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 import java.util.*;
 import top.niunaijun.blackbox.BlackBoxCore;
+import top.niunaijun.blackbox.entity.pm.InstallResult;
 
 public final class MainActivity extends BaseActivity {
     static final String REPO = "https://github.com/ArnavSingh76533/dual-space";
@@ -192,13 +193,37 @@ public final class MainActivity extends BaseActivity {
     }
     private void membership() { alert("All features included", "Dual Space is free and ad-free. Multiple spaces, device identities and Google service setup are included. There is no subscription."); }
     private void google(int id) {
-        background(() -> {
-            StringBuilder s = new StringBuilder("Google components in " + SpaceRepository.name(this, id) + "\n\n");
-            for (String pkg : new String[]{"com.google.android.gsf", "com.google.android.gms", "com.android.vending"}) s.append(pkg).append(BlackBoxCore.get().isInstalled(pkg, id) ? "\nInstalled\n\n" : "\nMissing\n\n");
-            return s.toString();
-        }, state -> new AlertDialog.Builder(this).setTitle("Google Play services").setMessage(state + "Setup uses the Google apps already installed on your phone. App compatibility and sign-in vary by device. Play Integrity is not emulated.")
-                .setNegativeButton("Close", null).setNeutralButton("Open Play Store", (d, w) -> launch(id, "com.android.vending"))
-                .setPositiveButton("Set up / repair", (d, w) -> busy("Setting up Google…", () -> { SpaceRepository.requireSuccess(BlackBoxCore.get().installGms(id)); return true; }, ok -> { refresh(); google(id); })).show());
+        background(() -> GoogleDiagnostics.status(id), state -> new AlertDialog.Builder(this).setTitle("Google Play services")
+                .setMessage(state + "Setup uses the Google apps already installed on your phone. App compatibility and sign-in vary by device.")
+                .setNegativeButton("Close", null).setNeutralButton("More", (d, w) -> new AlertDialog.Builder(this)
+                        .setTitle("Google services tools").setItems(new String[]{"Open Play Store", "Copy setup report"}, (tools, which) -> {
+                            if (which == 0) launch(id, "com.android.vending");
+                            else background(() -> GoogleDiagnostics.report(this, id), this::copyGoogleReport);
+                        }).show())
+                .setPositiveButton("Set up / repair", (d, w) -> setupGoogle(id)).show());
+    }
+    private void setupGoogle(int id) {
+        busy("Setting up Google…", () -> {
+            InstallResult result = SpaceRepository.setupGoogle(this, id);
+            return new GoogleAttempt(result, result.success ? "" : GoogleDiagnostics.report(this, id));
+        }, attempt -> {
+            refresh();
+            if (attempt.result.success) google(id);
+            else new AlertDialog.Builder(this).setTitle("Google setup needs attention")
+                    .setMessage(attempt.result.msg + "\n\nCompleted components are kept. Restart the engine and retry. If it still fails, copy the setup report to troubleshoot this device.")
+                    .setNegativeButton("Close", null).setNeutralButton("Copy report", (d, w) -> copyGoogleReport(attempt.report))
+                    .setPositiveButton("Retry", (d, w) -> setupGoogle(id)).show();
+        });
+    }
+    private void copyGoogleReport(String report) {
+        android.content.ClipboardManager clipboard = getSystemService(android.content.ClipboardManager.class);
+        clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Google setup report", report));
+        toast("Setup report copied");
+    }
+    private static final class GoogleAttempt {
+        final InstallResult result;
+        final String report;
+        GoogleAttempt(InstallResult result, String report) { this.result = result; this.report = report; }
     }
     private void qrTools() {
         new AlertDialog.Builder(this).setTitle("QR tools").setItems(new String[]{"Scan an app package", "Show download QR"}, (d, which) -> {

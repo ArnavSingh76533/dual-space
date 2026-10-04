@@ -9,6 +9,7 @@ import top.niunaijun.blackbox.BlackBoxCore;
 import top.niunaijun.blackbox.core.system.user.BUserInfo;
 import top.niunaijun.blackbox.entity.pm.InstallResult;
 import top.niunaijun.blackbox.fake.device.DeviceSpoofManager;
+import top.niunaijun.blackbox.utils.FailureMessage;
 
 final class SpaceRepository {
     static final BlackBoxCore CORE = BlackBoxCore.get();
@@ -48,18 +49,33 @@ final class SpaceRepository {
         DeviceSpoofManager.delete(id);
         SharedPreferences p = prefs(c); SharedPreferences.Editor e = p.edit();
         for (String k : p.getAll().keySet()) {
-            if (k.equals("name." + id) || k.equals("note." + id) || k.startsWith("hidden." + id + ".") || k.startsWith("label." + id + ".")) e.remove(k);
+            if (k.equals("name." + id) || k.equals("note." + id) || k.equals("googleError." + id) || k.startsWith("hidden." + id + ".") || k.startsWith("label." + id + ".")) e.remove(k);
         }
         e.commit();
     }
     static void requireSuccess(InstallResult r) {
-        if (r == null || !r.success) throw new IllegalStateException(r == null ? "Engine returned no result" : r.msg);
+        if (r == null || !r.success) throw new IllegalStateException(r == null ? "Engine returned no result" : FailureMessage.orDefault(r.msg, "Installation failed without details"));
+    }
+    static InstallResult setupGoogle(Context c, int id) {
+        InstallResult r;
+        try {
+            checkEngine();
+            r = CORE.installGms(id);
+            if (r == null) r = new InstallResult().installError("Engine returned no Google setup result");
+        } catch (Exception failure) {
+            r = new InstallResult().installError(FailureMessage.describe(failure));
+        }
+        SharedPreferences.Editor editor = prefs(c).edit();
+        if (r.success) editor.remove("googleError." + id);
+        else editor.putString("googleError." + id, FailureMessage.orDefault(r.msg, "Google setup failed without details"));
+        editor.commit();
+        return r;
     }
     static String autoGms(Context c, int id) {
         if (!prefs(c).getBoolean("autoGms", true)) return "";
         if (!CORE.isSupportGms()) return "Google Play services are not installed on this phone. You can import Google APKs from the space menu.";
-        InstallResult r = CORE.installGms(id);
-        return r.success ? "" : "App installed. Google setup needs attention: " + r.msg;
+        InstallResult r = setupGoogle(c, id);
+        return r.success ? "" : "Google setup needs attention: " + r.msg + "\nOpen this space's Google Play services menu to retry or copy the setup report.";
     }
     static class AppEntry {
         final ApplicationInfo info; final String label; final Drawable icon;

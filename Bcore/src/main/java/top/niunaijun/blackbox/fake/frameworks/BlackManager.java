@@ -15,7 +15,7 @@ import top.niunaijun.blackbox.utils.Reflector;
 public abstract class BlackManager<Service extends IInterface> {
     public static final String TAG = "BlackManager";
 
-    private Service mService;
+    private volatile Service mService;
     private final AtomicBoolean mServiceCreationFailed = new AtomicBoolean(false);
     private long mLastRetryTime = 0;
     private long mLastServiceCreationTime = 0;
@@ -134,6 +134,9 @@ public abstract class BlackManager<Service extends IInterface> {
     
     public void clearServiceCache() {
         mService = null;
+        mServiceCreationFailed.set(false);
+        mLastRetryTime = 0;
+        mLastServiceCreationTime = 0;
         Log.d(TAG, "Cleared service cache for " + getServiceName());
     }
     

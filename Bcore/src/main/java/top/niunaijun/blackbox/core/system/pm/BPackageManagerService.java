@@ -48,6 +48,7 @@ import top.niunaijun.blackbox.entity.pm.InstalledPackage;
 import top.niunaijun.blackbox.utils.AbiUtils;
 import top.niunaijun.blackbox.utils.BzFileUtils;
 import top.niunaijun.blackbox.utils.Slog;
+import top.niunaijun.blackbox.utils.FailureMessage;
 import top.niunaijun.blackbox.utils.compat.PackageParserCompat;
 
 
@@ -687,6 +688,7 @@ public class BPackageManagerService extends IBPackageManagerService.Stub impleme
         File stagedFile = null;
         File extractedDir = null;
         List<File> selectedSplits = null;
+        String phase = "opening the install source";
         try {
             Slog.i(TAG, "installPackageAsUserLocked: userId=" + userId
                     + " uriFile=" + option.isFlag(InstallOption.FLAG_URI_FILE)
@@ -744,6 +746,7 @@ public class BPackageManagerService extends IBPackageManagerService.Stub impleme
             }
 
 
+            phase = "reading APK metadata";
             PackageInfo packageArchiveInfo = BlackBoxCore.getPackageManager().getPackageArchiveInfo(apkFile.getAbsolutePath(), 0);
             if (packageArchiveInfo == null) {
                 return result.installError("getPackageArchiveInfo error.Please check whether APK is normal.");
@@ -751,6 +754,7 @@ public class BPackageManagerService extends IBPackageManagerService.Stub impleme
 
             
             String packageName = packageArchiveInfo.packageName;
+            result.packageName = packageName;
             String hostPackageName = BlackBoxCore.getHostPkg();
             if (packageName.equals(hostPackageName)) {
                 return result.installError("Cannot clone BlackBox app from within BlackBox. This would create infinite recursion and is not allowed for security reasons.");
@@ -763,12 +767,14 @@ public class BPackageManagerService extends IBPackageManagerService.Stub impleme
                 Slog.w(TAG, "Installing potentially BlackBox-related app: " + packageName + ". Proceed with caution.");
             }
 
+            phase = "checking CPU architecture";
             boolean support = AbiUtils.isSupport(apkFile);
             if (!support) {
                 String msg = packageArchiveInfo.applicationInfo.loadLabel(BlackBoxCore.getPackageManager()) + "[" + packageArchiveInfo.packageName + "]";
                 return result.installError(packageArchiveInfo.packageName,
                         msg + "\n" + (BlackBoxCore.is64Bit() ? "The box does not support 32-bit Application" : "The box does not support 64-bit Application"));
             }
+            phase = "parsing the manifest and signatures";
             PackageParser.Package aPackage = parserApk(apkFile.getAbsolutePath());
             if (aPackage == null) {
                 return result.installError("parser apk error.");
@@ -793,28 +799,34 @@ public class BPackageManagerService extends IBPackageManagerService.Stub impleme
             }
 
             if (option.isFlag(InstallOption.FLAG_SYSTEM)) {
+                phase = "reading the phone's installed package";
                 aPackage.applicationInfo = BlackBoxCore.getPackageManager().getPackageInfo(aPackage.packageName, 0).applicationInfo;
             }
+            phase = "creating virtual package metadata";
             BPackageSettings bPackageSettings = mSettings.getPackageLPw(aPackage.packageName, aPackage, option);
 
             
             BProcessManagerService.get().killPackageAsUser(aPackage.packageName, userId);
 
+            phase = "preparing files and app data";
             int i = BPackageInstallerService.get().installPackageAsUser(bPackageSettings, userId);
             if (i < 0) {
-                return result.installError("install apk error.");
+                return result.installError("Could not prepare app files/data (installer code " + i + "). Check free storage and APK readability.");
             }
+            phase = "saving the installed state";
             synchronized (mPackages) {
                 bPackageSettings.setInstalled(true, userId);
                 bPackageSettings.save();
             }
+            phase = "registering app components";
             mComponentResolver.removeAllComponents(bPackageSettings.pkg);
             mComponentResolver.addAllComponents(bPackageSettings.pkg);
             mSettings.scanPackage(aPackage.packageName);
             onPackageInstalled(bPackageSettings.pkg.packageName, userId);
             return result;
         } catch (Throwable t) {
-            t.printStackTrace();
+            Slog.e(TAG, "Installation failed while " + phase, t);
+            return result.installError("Installation failed while " + phase + ": " + FailureMessage.describe(t));
         } finally {
             if (stagedFile != null && option.isFlag(InstallOption.FLAG_URI_FILE)) {
                 BzFileUtils.deleteDir(stagedFile);
@@ -824,7 +836,6 @@ public class BPackageManagerService extends IBPackageManagerService.Stub impleme
             }
             Slog.d(TAG, "install finish: " + (System.currentTimeMillis() - l) + "ms");
         }
-        return result;
     }
 
     private String resolveDisplayName(Uri uri) {
@@ -1115,16 +1126,13 @@ public class BPackageManagerService extends IBPackageManagerService.Stub impleme
         return new File(dir, UUID.randomUUID().toString() + ".apk");
     }
 
-    private PackageParser.Package parserApk(String file) {
-        try {
-            PackageParser parser = PackageParserCompat.createParser(new File(file));
-            PackageParser.Package aPackage = PackageParserCompat.parsePackage(parser, new File(file), 0);
-            PackageParserCompat.collectCertificates(parser, aPackage, 0);
-            return aPackage;
-        } catch (Throwable t) {
-            t.printStackTrace();
-        }
-        return null;
+    private PackageParser.Package parserApk(String file) throws Throwable {
+        PackageParser parser = PackageParserCompat.createParser(new File(file));
+        if (parser == null) throw new IllegalStateException("Android package parser is unavailable on this device");
+        PackageParser.Package aPackage = PackageParserCompat.parsePackage(parser, new File(file), 0);
+        if (aPackage == null) throw new IllegalStateException("Android package parser returned no package");
+        PackageParserCompat.collectCertificates(parser, aPackage, 0);
+        return aPackage;
     }
 
     static String fixProcessName(String defProcessName, String processName) {

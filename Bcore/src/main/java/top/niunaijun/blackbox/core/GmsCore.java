@@ -10,6 +10,8 @@ import java.util.ArrayList;
 
 import top.niunaijun.blackbox.BlackBoxCore;
 import top.niunaijun.blackbox.entity.pm.InstallResult;
+import top.niunaijun.blackbox.fake.frameworks.BPackageManager;
+import top.niunaijun.blackbox.utils.FailureMessage;
 
 
 public class GmsCore {
@@ -78,7 +80,7 @@ public class GmsCore {
     }
 
     public static InstallResult installGApps(int userId) {
-        // Install in dependency order, verify every component, preserve existing installs.
+        // Install in dependency order and preserve completed dependencies for a retry.
         String[] required = {GSF_PKG, GMS_PKG, VENDING_PKG};
         for (String pkg : required) {
             try {
@@ -87,7 +89,6 @@ public class GmsCore {
                 return new InstallResult().installError(pkg, "Not installed on this phone: " + pkg);
             }
         }
-        ArrayList<String> added = new ArrayList<>();
         ArrayList<String> ordered = new ArrayList<>();
         ordered.add(GSF_PKG);
         try {
@@ -96,14 +97,20 @@ public class GmsCore {
         } catch (PackageManager.NameNotFoundException ignored) { }
         ordered.add(GMS_PKG);
         ordered.add(VENDING_PKG);
-        for (String pkg : ordered) {
-            if (BlackBoxCore.get().isInstalled(pkg, userId)) continue;
-            InstallResult result = BlackBoxCore.get().installPackageAsUser(pkg, userId);
-            if (!result.success || !BlackBoxCore.get().isInstalled(pkg, userId)) {
-                for (String rollback : added) BlackBoxCore.get().uninstallPackageAsUser(rollback, userId);
-                return new InstallResult().installError(pkg, "Google setup failed for " + pkg + ": " + result.msg);
-            }
-            added.add(pkg);
+        try {
+            GoogleSetupRunner.run(ordered.toArray(new String[0]), new GoogleSetupRunner.Backend() {
+                @Override public boolean isInstalled(String pkg) throws Exception {
+                    return BPackageManager.get().isInstalledInSpace(pkg, userId);
+                }
+                @Override public void install(String pkg) {
+                    InstallResult result = BlackBoxCore.get().installPackageAsUser(pkg, userId);
+                    if (result == null || !result.success) {
+                        throw new IllegalStateException(result == null ? "Engine returned no installation result" : FailureMessage.orDefault(result.msg, "Installer reported a failure without details"));
+                    }
+                }
+            });
+        } catch (GoogleSetupRunner.SetupFailure failure) {
+            return new InstallResult().installError(failure.packageName, failure.getMessage());
         }
         return new InstallResult();
     }

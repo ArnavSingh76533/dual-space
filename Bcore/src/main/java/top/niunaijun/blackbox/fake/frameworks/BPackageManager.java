@@ -26,6 +26,7 @@ import top.niunaijun.blackbox.entity.pm.InstallOption;
 import top.niunaijun.blackbox.entity.pm.InstallResult;
 import top.niunaijun.blackbox.entity.pm.InstalledPackage;
 import top.niunaijun.blackbox.utils.TransactionThrottler;
+import top.niunaijun.blackbox.utils.FailureMessage;
 
 
 public class BPackageManager extends BlackManager<IBPackageManagerService> {
@@ -540,11 +541,16 @@ public class BPackageManager extends BlackManager<IBPackageManagerService> {
                 Log.w(TAG, "PackageManager service is null in installPackageAsUser, returning install error");
                 return new InstallResult().installError("PackageManager service unavailable");
             }
-            return service.installPackageAsUser(file, option, userId);
+            InstallResult result = service.installPackageAsUser(file, option, userId);
+            return result == null ? new InstallResult().installError("PackageManager returned no installation result") : result;
         } catch (RemoteException e) {
-            crash(e);
+            clearServiceCache();
+            Log.e(TAG, "Install IPC failed", e);
+            return new InstallResult().installError("PackageManager connection failed: " + FailureMessage.describe(e) + ". Check this space before retrying; the install may have completed.");
+        } catch (RuntimeException e) {
+            Log.e(TAG, "Install request failed", e);
+            return new InstallResult().installError(FailureMessage.describe(e));
         }
-        return new InstallResult().installError("Remote exception during install");
     }
 
     public List<ApplicationInfo> getInstalledApplications(int flags, int userId) {
@@ -597,39 +603,27 @@ public class BPackageManager extends BlackManager<IBPackageManagerService> {
         }
     }
 
-    public boolean isInstalled(String packageName, int userId) {
-        
-        if (shouldUseFallbackMode()) {
-            Log.w(TAG, "Using fallback isInstalled check for " + packageName + " due to service failures");
-            return isInstalledFallback(packageName);
-        }
-        
+    /** Never substitute phone-wide installation state for a virtual user's state. */
+    public boolean isInstalledInSpace(String packageName, int userId) throws RemoteException {
+        IBPackageManagerService service = getServiceWithFallback();
+        if (service == null) throw new RemoteException("Virtual PackageManager is unavailable. Restart the engine and retry.");
         try {
-            IBPackageManagerService service = getService();
-            if (service != null) {
-                boolean result = service.isInstalled(packageName, userId);
-                transactionThrottler.reset(); 
-                return result;
-            } else {
-                Log.w(TAG, "PackageManager service is null, returning false for isInstalled check");
-            }
+            boolean result = service.isInstalled(packageName, userId);
+            transactionThrottler.reset();
+            return result;
         } catch (android.os.DeadObjectException e) {
-            Log.w(TAG, "PackageManager service died during isInstalled check, clearing service and retrying", e);
-            transactionThrottler.recordFailure();
-            
             clearServiceCache();
-            
-            try {
-                IBPackageManagerService service = getService();
-                if (service != null) {
-                    boolean result = service.isInstalled(packageName, userId);
-                    transactionThrottler.reset(); 
-                    return result;
-                }
-            } catch (Exception retryException) {
-                Log.e(TAG, "Retry failed for isInstalled check", retryException);
-                transactionThrottler.recordFailure();
-            }
+            service = getServiceWithFallback();
+            if (service == null) throw e;
+            boolean result = service.isInstalled(packageName, userId);
+            transactionThrottler.reset();
+            return result;
+        }
+    }
+
+    public boolean isInstalled(String packageName, int userId) {
+        try {
+            return isInstalledInSpace(packageName, userId);
         } catch (RemoteException e) {
             Log.e(TAG, "RemoteException in isInstalled check", e);
             transactionThrottler.recordFailure();
@@ -638,24 +632,6 @@ public class BPackageManager extends BlackManager<IBPackageManagerService> {
             transactionThrottler.recordFailure();
         }
         return false;
-    }
-    
-    
-    private boolean isInstalledFallback(String packageName) {
-        try {
-            
-            BlackBoxCore.getContext().getPackageManager().getPackageInfo(packageName, 0);
-            return true;
-        } catch (Exception e) {
-            Log.d(TAG, "Fallback isInstalled check failed for " + packageName + ", assuming not installed");
-            
-            if (packageName != null && (packageName.equals("com.media.bestrecorder.audiorecorder") || 
-                                       packageName.startsWith("top.niunaijun.blackbox"))) {
-                Log.w(TAG, "Returning true for known app " + packageName + " despite fallback failure");
-                return true;
-            }
-            return false;
-        }
     }
 
     public List<InstalledPackage> getInstalledPackagesAsUser(int userId) {

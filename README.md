@@ -48,6 +48,22 @@ Play Integrity. Android 14–16 needs device testing. Read
 [compatibility details](docs/COMPATIBILITY.md) and the
 [device test plan](docs/DEVICE_TEST_PLAN.md).
 
+## Google setup troubleshooting (1.0.1)
+
+The installer now returns the actual failure instead of swallowing an
+exception and reporting success. Parser errors include their cause and the
+installation stage. Google setup checks the selected space, never the phone's
+installation state, and reconnects once when the package service dies.
+Completed dependencies are kept so a retry can resume.
+
+If setup fails, open the space menu → Google Play services → Set up / repair.
+Use **Copy report** on the error dialog, or **More → Copy setup report** on the
+status dialog. The report includes Android/engine architecture, Google package
+versions, APK readability, space installation state and the last setup error.
+It does not include account credentials, tokens or device identifiers and is
+only copied locally. An installed status does not verify Google login or API
+behavior; those still need testing on the phone.
+
 ## Build locally
 
 JDK 21, Android SDK 35 / build-tools 35.0.0, and NDK 29.0.13846066:

@@ -4,6 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import top.niunaijun.blackbox.utils.Slog;
+import top.niunaijun.blackbox.utils.FailureMessage;
 
 
 public class InstallResult implements Parcelable {
@@ -35,17 +36,17 @@ public class InstallResult implements Parcelable {
     }
 
     public InstallResult installError(String packageName, String msg) {
-        this.msg = msg;
+        this.msg = FailureMessage.orDefault(msg, "Installation failed without an error message");
         this.success = false;
         this.packageName = packageName;
-        Slog.d(TAG, msg);
+        Slog.d(TAG, this.msg);
         return this;
     }
 
     public InstallResult installError(String msg) {
-        this.msg = msg;
+        this.msg = FailureMessage.orDefault(msg, "Installation failed without an error message");
         this.success = false;
-        Slog.d(TAG, msg);
+        Slog.d(TAG, this.msg);
         return this;
     }
 
