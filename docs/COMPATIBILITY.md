@@ -1,16 +1,36 @@
 # Compatibility and verification
 
-Dual Space is an actual BlackBox-based app container, not a collection of
+Nimbus's numbered spaces are an actual BlackBox-based app container, not a collection of
 shortcuts to the personal-profile apps. Each numbered space maps to one
 virtual user ID. App data and virtual Google accounts belong to that user.
-It is userspace virtualization, not the Android Enterprise security boundary.
+They use userspace virtualization, not the Android Enterprise security boundary.
+
+## Native work profile (1.1.0)
+
+An optional mode creates an Android-managed work profile through the system
+provisioning UI. Nimbus only asks to own that new profile. It enables the
+phone's Google system apps in that profile, lists native installed apps and
+launches them with the regular Android package manager. The application
+skips BlackBox attach/startup in the managed profile, and the work launcher
+does not access the virtual engine or synthetic identity store.
+
+This mode uses one additional profile when device policy and the ROM allow
+it. Install apps from the work profile's Play Store. Existing virtual data
+does not migrate. OEM setup restrictions, Google login and app acceptance
+need device testing; an app can still reject extra installations or a work
+profile. A Play Store listing for another cloner does not establish which
+engine or app-specific behavior it uses.
+
+Use stable Actions signing secrets before keeping work-profile data across
+updates; the temporary debug key changes between runners. Profile-owner app
+updates require the same signing certificate. See README.md for setup.
 
 ## Google Play services
 
 The space menu's **Google Play services** screen checks Services Framework,
 Play services and Play Store separately. Setup imports them from the phone
 in dependency order, includes Google Account Manager when present, checks
-every installation, and rolls back only components added by a failed setup.
+every installation, and keeps completed components so failed setup can resume.
 There are no Google APK download links or bundled Google binaries.
 
 Automatic setup is enabled by default when cloning/importing apps. If it
@@ -36,8 +56,8 @@ Changing targetSdk alone does not modernize the engine.
 
 The upstream fork includes Android 14–16 compatibility patches, but support
 is app/ROM-specific. No claim of universal Android 16 support is made.
-Install **DualSpace-arm64.apk** for 64-bit apps on modern ARM phones.
-Use **DualSpace-arm32.apk** only for 32-bit apps on phones with 32-bit runtime
+Install **Nimbus-arm64.apk** for 64-bit apps on modern ARM phones.
+Use **Nimbus-arm32.apk** only for 32-bit apps on phones with 32-bit runtime
 support. Many recent phones cannot run 32-bit apps. Installing the other APK
 replaces the same host app, so stop virtual apps before switching.
 Split APKs and APKS bundles are handled by the inherited engine; complex
@@ -60,7 +80,7 @@ physical phone's identifiers are never modified.
 
 ## Validation
 
-GitHub Actions runs APK compilation, identity-format/collision/Luhn tests
+GitHub Actions runs APK compilation, installer/parser/error and identity tests,
 and Android lint. There is no attached physical Android device in the build
 environment. See DEVICE_TEST_PLAN.md for runtime acceptance tests. Build
 success must not be treated as proof that every cloned app or Google login

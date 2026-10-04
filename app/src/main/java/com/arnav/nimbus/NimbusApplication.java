@@ -9,8 +9,11 @@ import top.niunaijun.blackbox.app.configuration.ClientConfiguration;
 
 public final class NimbusApplication extends Application {
     public static volatile String engineError;
+    private boolean nativeProfile;
     @Override protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
+        nativeProfile = NativeProfileManager.isManaged(base);
+        if (nativeProfile) return;
         try {
             BlackBoxCore.get().doAttachBaseContext(base, new ClientConfiguration() {
                 @Override public String getHostPackageName() { return base.getPackageName(); }
@@ -27,6 +30,7 @@ public final class NimbusApplication extends Application {
     @Override public void onCreate() {
         super.onCreate();
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        if (nativeProfile) return;
         if (engineError == null) {
             try { BlackBoxCore.get().doCreate(); }
             catch (Throwable e) { engineError = e.toString(); Log.e("Nimbus", "Engine startup failed", e); }

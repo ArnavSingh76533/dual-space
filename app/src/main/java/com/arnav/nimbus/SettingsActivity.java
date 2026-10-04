@@ -14,6 +14,7 @@ public final class SettingsActivity extends BaseActivity {
         LinearLayout general = Ui.card(this); list.addView(general);
         toggle(general, "Set up Google services automatically", "autoGms", true);
         toggle(general, "Keep the engine running in background", "background", true);
+        general.addView(Ui.button(this, "Android work profile", () -> startActivity(new Intent(this, NativeProfileActivity.class))));
         TextView hint = Ui.text(this, "Restart Engine after changing the background setting.", 12, Ui.MUTED); general.addView(hint);
         LinearLayout permissions = Ui.card(this); list.addView(permissions);
         permissions.addView(Ui.button(this, "App permissions", this::permissions));

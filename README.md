@@ -28,6 +28,7 @@ phones. Both are debug-signed sideload builds, with SHA-256 checksums.
 | Share | Android share sheet and repository QR |
 | Search / QR toolbar | Search all spaces; scan app package or Play Store link |
 | Google Play services | Per-space setup/repair and component status |
+| Android work profile (1.1.0) | Optional OS-managed second installation; work Play Store and app launcher |
 
 App long-press also provides Rename, Force stop, Clear data, Uninstall and
 Create shortcut. Space menus provide Rename and Delete space.
@@ -88,6 +89,42 @@ chmod +x gradlew
 
 The project intentionally targets API 28 for legacy virtualization APIs.
 It is intended for sideloading, not publication to Google Play.
+
+## Native work-profile mode (1.1.0, experimental)
+
+Open **⋮ → Android work profile → Create work profile**. Android displays
+its consent/setup screens and installs Nimbus as the owner of a new work
+profile. Open the briefcase-badged Nimbus app in the launcher's Work tab,
+enable Google components when needed, and install apps from that profile's
+Play Store. Apps run normally under Android, with their original APKs and
+signatures. Google services are enabled as actual system apps in the profile;
+the virtual Google installer and identity hooks are not used there.
+
+The numbered virtual spaces remain available in the personal-profile app.
+Work-profile mode is one additional Android profile, subject to ROM/device
+policy. It does not import existing virtual-space data. If Android refuses
+profile creation, the app reports that and does not remove an existing
+profile. Provisioning, Google sign-in and Swiggy acceptance still require
+physical-device testing. No claim of reproducing Clone Master's internal
+engine or making apps undetectable is made.
+
+**Signing matters for a profile owner.** Without signing secrets, Actions
+uses a temporary debug key; a later build may require removing the test work
+profile, erasing its data. Use a test profile for these APKs. For persistent
+use, configure these repository Actions secrets before creating the profile:
+
+- `NIMBUS_KEYSTORE_BASE64`: your private JKS/PKCS12 keystore encoded as base64.
+- `NIMBUS_STORE_PASSWORD`: keystore password.
+- `NIMBUS_KEY_ALIAS`: signing-key alias.
+- `NIMBUS_KEY_PASSWORD`: key password.
+
+Keep the same key and alias for all updates. Never commit the keystore or
+passwords. The workflow loads it privately from secrets and signs the debug
+APK; the APK is still an experimental, debuggable sideload build.
+
+Implementation uses Android's public [work-profile provisioning APIs](https://developer.android.com/work/dpc/build-dpc).
+It does not request whole-device ownership, password-reset/wipe policies or
+automatic permission grants. Android's system consent screens remain enabled.
 
 ## Credits
 

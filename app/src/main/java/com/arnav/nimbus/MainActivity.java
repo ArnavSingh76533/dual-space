@@ -29,9 +29,15 @@ public final class MainActivity extends BaseActivity {
     private EditText search;
     private List<SpaceRepository.Space> spaces = new ArrayList<>();
     private boolean showHidden;
+    private boolean virtualMode;
     private final Runnable ready = () -> runOnUiThread(() -> { if (!isDestroyed() && !isFinishing()) refresh(); });
     @Override protected void onCreate(Bundle state) {
-        super.onCreate(state); title("Nimbus", false);
+        super.onCreate(state);
+        if (NativeProfileManager.isManaged(this)) {
+            startActivity(new Intent(this, NativeProfileActivity.class)); finish(); return;
+        }
+        virtualMode = true;
+        title("Nimbus", false);
         icon("⌕", "Search apps", () -> { search.setVisibility(search.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE); search.requestFocus(); });
         icon("⊘", "Ad-free membership", this::membership);
         icon("▦", "QR tools", this::qrTools);
@@ -56,9 +62,9 @@ public final class MainActivity extends BaseActivity {
         if (state != null) search.setText(state.getString("search", ""));
         if (NimbusApplication.engineError == null) BlackBoxCore.get().addServiceAvailableCallback(ready);
     }
-    @Override protected void onResume() { super.onResume(); refresh(); }
-    @Override protected void onSaveInstanceState(Bundle state) { state.putString("search", search.getText().toString()); super.onSaveInstanceState(state); }
-    @Override protected void onDestroy() { BlackBoxCore.get().removeServiceAvailableCallback(ready); super.onDestroy(); }
+    @Override protected void onResume() { super.onResume(); if (virtualMode) refresh(); }
+    @Override protected void onSaveInstanceState(Bundle state) { if (search != null) state.putString("search", search.getText().toString()); super.onSaveInstanceState(state); }
+    @Override protected void onDestroy() { if (virtualMode) BlackBoxCore.get().removeServiceAvailableCallback(ready); super.onDestroy(); }
     private void refresh() {
         background(() -> SpaceRepository.list(this), result -> { spaces = result; render(); });
     }
@@ -169,7 +175,7 @@ public final class MainActivity extends BaseActivity {
     }
     private void globalMenu(View anchor) {
         PopupMenu p = new PopupMenu(this, anchor);
-        String[] names = {"Settings", showHidden ? "Hide hidden apps" : "Show hidden apps", "Restart Engine", "Membership & subscription", "Share"};
+        String[] names = {"Settings", showHidden ? "Hide hidden apps" : "Show hidden apps", "Restart Engine", "Membership & subscription", "Share", "Android work profile"};
         for (int i = 0; i < names.length; i++) p.getMenu().add(0, i, i, names[i]);
         p.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
@@ -178,6 +184,7 @@ public final class MainActivity extends BaseActivity {
                 case 2: busy("Stopping virtual apps…", () -> { for (SpaceRepository.Space s : SpaceRepository.list(this)) SpaceRepository.stopSpace(s.id); return true; }, ok -> restart()); break;
                 case 3: membership(); break;
                 case 4: startActivity(Intent.createChooser(new Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "Nimbus — separate apps, accounts and spaces.\n" + REPO), "Share Nimbus")); break;
+                case 5: startActivity(new Intent(this, NativeProfileActivity.class)); break;
             } return true;
         }); p.show();
     }

@@ -1,5 +1,29 @@
 # Device acceptance tests
 
+## Native work profile (1.1.0)
+
+Use a test profile with the default debug-signed APK. Configure stable signing
+as described in README.md before keeping profile data across future builds.
+
+1. Open ⋮ → Android work profile. Cancel system setup and verify no profile is
+   created. Try again and approve Android's consent screens. Record ROM/API.
+2. Open briefcase-badged Nimbus in the launcher's Work tab. Verify the native
+   work-app screen appears and the virtual engine does not start there.
+3. Enable Google components and copy the native report. Open work Play Store,
+   sign in with a test account, and install a browser or messenger. Confirm
+   its data is separate from the personal copy and numbered virtual spaces.
+4. Install Swiggy from the work Play Store and record whether it accepts this
+   profile. A successful APK build is not evidence of Swiggy compatibility.
+5. Pause/resume the profile in Android and test Open Nimbus in work profile
+   from the personal app. Test the manual Work-tab fallback when paused.
+6. Test a device with an existing work profile: creating another must be
+   unavailable; the app must not delete or take ownership of that profile.
+7. With a stable key configured, build/install a subsequent version and verify
+   work apps/accounts persist. Inspect the merged manifest's provisioning
+   receiver/activity protection and confirm only managed-profile mode is used.
+
+## Numbered virtual spaces
+
 Record Android version/ROM, CPU ABI, Dual Space commit and Google package
 versions. Test first with a nonessential account.
 

@@ -26,7 +26,20 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Install Android toolchain
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0' 'ndk;29.0.13846066'
+      - name: Load optional stable signing key
+        env:
+          NIMBUS_KEYSTORE_BASE64: ${{ secrets.NIMBUS_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$NIMBUS_KEYSTORE_BASE64" ]; then
+            umask 077
+            printf '%s' "$NIMBUS_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/nimbus-signing.jks"
+            echo "NIMBUS_KEYSTORE_PATH=$RUNNER_TEMP/nimbus-signing.jks" >> "$GITHUB_ENV"
+          fi
       - name: Build and test
+        env:
+          NIMBUS_STORE_PASSWORD: ${{ secrets.NIMBUS_STORE_PASSWORD }}
+          NIMBUS_KEY_ALIAS: ${{ secrets.NIMBUS_KEY_ALIAS }}
+          NIMBUS_KEY_PASSWORD: ${{ secrets.NIMBUS_KEY_PASSWORD }}
         run: |
           chmod +x gradlew
           ./gradlew --no-daemon :app:assembleDebug :app:testDebugUnitTest :app:lintDebug

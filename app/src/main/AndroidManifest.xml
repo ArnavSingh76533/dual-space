@@ -13,6 +13,24 @@
         <activity android:name=".InstallActivity" android:exported="false" />
         <activity android:name=".IdentityActivity" android:exported="false" />
         <activity android:name=".SettingsActivity" android:exported="false" />
+        <activity android:name=".NativeProfileActivity" android:exported="false" />
+        <activity android:name=".ProfileProvisioningActivity" android:exported="true"
+            android:permission="android.permission.BIND_DEVICE_ADMIN">
+            <intent-filter>
+                <action android:name="android.app.action.GET_PROVISIONING_MODE" />
+                <action android:name="android.app.action.ADMIN_POLICY_COMPLIANCE" />
+                <action android:name="android.app.action.PROVISIONING_SUCCESSFUL" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <receiver android:name=".NimbusProfileAdminReceiver" android:exported="true"
+            android:permission="android.permission.BIND_DEVICE_ADMIN">
+            <meta-data android:name="android.app.device_admin" android:resource="@xml/profile_admin" />
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+                <action android:name="android.app.action.PROFILE_PROVISIONING_COMPLETE" />
+            </intent-filter>
+        </receiver>
         <activity android:name=".ShortcutActivity" android:exported="true" android:theme="@style/TransparentTheme" />
     </application>
 </manifest>
