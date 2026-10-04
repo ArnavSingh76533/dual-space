@@ -9,7 +9,9 @@ public class ProxyManifest {
     public static final int FREE_COUNT = 50;
 
     public static boolean isProxy(String msg) {
-        return getBindProvider().equals(msg) || msg.contains("proxy_content_provider_");
+        return getBindProvider().equals(msg)
+                || (BlackBoxCore.getHostPkg() + ".space.identity").equals(msg)
+                || msg.contains("proxy_content_provider_");
     }
 
     public static String getBindProvider() {
